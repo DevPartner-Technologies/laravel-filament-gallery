@@ -1,0 +1,33 @@
+{
+    "name": "devpartner/laravel-filament-gallery",
+    "description": "Standalone Filament 4 Embeddable Gallery Manager",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "DevPartner"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^4.0",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "autoload": {
+        "psr-4": {
+            "DevPartner\\FilamentGallery\\": "src/"
+        },
+        "files": [
+            "src/Helpers/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "DevPartner\\FilamentGallery\\FilamentGalleryServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
