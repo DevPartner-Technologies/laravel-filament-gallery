@@ -28,7 +28,7 @@ A powerful standalone Laravel & Filament 4 package for managing image galleries,
 Install the package via Composer:
 
 ```bash
-composer require devpartner/laravel-filament-gallery
+composer require devpartner-technologies/laravel-filament-gallery
 
 ```
 
