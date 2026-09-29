@@ -1,29 +1,30 @@
 <?php
+
 namespace DevPartner\FilamentGallery\Filament\Resources\GalleryResource\Pages;
 
-use DevPartner\FilamentGallery\Filament\Resources\GalleryResource;
-use DevPartner\FilamentGallery\Services\GalleryImageProcessor;
-use Filament\Resources\Pages\Concerns\InteractsWithRecord;
-use DevPartner\FilamentGallery\Models\GalleryImage;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Schemas\Contracts\HasSchemas;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Grid;
-use Filament\Resources\Pages\Page;
-use Filament\Actions\Action;
-use Illuminate\Support\Str;
 use DevPartner\FilamentGallery\Filament\Actions\GalleryEmbedAction;
-
+use DevPartner\FilamentGallery\Filament\Resources\GalleryResource;
+use DevPartner\FilamentGallery\Models\GalleryImage;
+use DevPartner\FilamentGallery\Services\GalleryImageProcessor;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\Concerns\InteractsWithRecord;
+use Filament\Resources\Pages\Page;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Contracts\HasSchemas;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\WithFileUploads;
 
 class ManageGalleryImages extends Page implements HasSchemas
 {
-    use InteractsWithRecord;
     use InteractsWithForms;
+    use InteractsWithRecord;
     use WithFileUploads;
 
     protected static string $resource = GalleryResource::class;
@@ -34,8 +35,18 @@ class ManageGalleryImages extends Page implements HasSchemas
     public array $uploads = [];
 
     public ?int $editingImageId = null;
+
     public ?string $editTitle = null;
+
     public ?string $editDescription = null;
+
+    /** @var array<int, array{key: string, value: string}> */
+    public array $editData = [];
+    public bool $isEditingThumbnail = false;
+    public string $generateType = 'auto';
+    public ?int $thumbWidth = null;
+    public ?int $thumbHeight = null;
+    public string $thumbCropType = 'crop_out';
 
     public function mount(int|string $record): void
     {
@@ -44,7 +55,7 @@ class ManageGalleryImages extends Page implements HasSchemas
 
     public function getTitle(): string
     {
-        return "Galléria képek: {$this->record->title}";
+        return "Galléria képek: {$this->record->title}";
     }
 
     public function updatedUploads(): void
@@ -74,7 +85,25 @@ class ManageGalleryImages extends Page implements HasSchemas
         $this->editTitle = $image->title;
         $this->editDescription = $image->description;
 
+        // Transform associative JSON array into indexed array for Livewire repeater
+        $this->editData = [];
+        $rawCustomData = $image->data ? (array) $image->data : [];
+        foreach ($rawCustomData as $k => $v) {
+            $this->editData[] = ['key' => (string) $k, 'value' => (string) $v];
+        }
+
         $this->dispatch('open-modal', id: 'image-detail-modal');
+    }
+
+    public function addDataRow(): void
+    {
+        $this->editData[] = ['key' => '', 'value' => ''];
+    }
+
+    public function removeDataRow(int $index): void
+    {
+        unset($this->editData[$index]);
+        $this->editData = array_values($this->editData);
     }
 
     public function updateImage(): void
@@ -83,10 +112,20 @@ class ManageGalleryImages extends Page implements HasSchemas
             return;
         }
 
+        // Reconstruct key-value array into JSON structure
+        $dataFormatted = [];
+        foreach ($this->editData as $item) {
+            $key = trim($item['key'] ?? '');
+            if ($key !== '') {
+                $dataFormatted[$key] = $item['value'] ?? '';
+            }
+        }
+
         $image = GalleryImage::findOrFail($this->editingImageId);
         $image->update([
             'title' => $this->editTitle,
             'description' => $this->editDescription,
+            'data' => $dataFormatted,
         ]);
 
         $this->dispatch('close-modal', id: 'image-detail-modal');
@@ -129,6 +168,48 @@ class ManageGalleryImages extends Page implements HasSchemas
             ->title(__('filament-gallery::gallery.manager.notifications.image_reordered'))
             ->success()
             ->send();
+    }
+
+    public function openThumbnailModal(): void
+    {
+        $image = GalleryImage::findOrFail($this->editingImageId);
+        $settings = $this->record->settings ?? [];
+
+        $this->generateType = 'auto';
+        $this->thumbWidth = $settings['thumb']['width'] ?? 300;
+        $this->thumbHeight = $settings['thumb']['height'] ?? 300;
+        $this->thumbCropType = $settings['thumb']['crop_type'] ?? 'crop_out';
+
+        // Modal opens initially in read-only thumbnail mode
+        $this->isEditingThumbnail = false;
+
+        $this->dispatch('open-modal', id: 'thumbnail-edit-modal');
+    }
+
+    public function enableThumbnailEditing(): void
+    {
+        $this->isEditingThumbnail = true;
+        $this->dispatch('activate-cropper');
+    }
+
+    public function generateThumbnail(array $coords = []): void
+    {
+        $image = GalleryImage::findOrFail($this->editingImageId);
+
+        // Helper closure to sanitize null/empty values into integers
+        $parseInt = fn ($val) => (! is_null($val) && $val !== '' && (int) $val > 0) ? (int) $val : null;
+
+        GalleryImageProcessor::processCustomThumbnail(
+            image: $image,
+            generateType: 'custom',
+            width: $parseInt($this->thumbWidth),
+            height: $parseInt($this->thumbHeight),
+            cropType: 'crop_out',
+            coords: $coords
+        );
+
+        $this->isEditingThumbnail = false;
+        $this->dispatch('destroy-cropper');
     }
 
     protected function getHeaderActions(): array

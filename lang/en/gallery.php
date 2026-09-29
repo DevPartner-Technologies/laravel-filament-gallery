@@ -30,6 +30,7 @@ return [
         ],
         'thumbnails' => [
             'label' => 'Generate Thumbnails',
+            'generate' => 'Generate thumbnail',
             'width' => 'Thumb Width (px)',
             'height' => 'Thumb Height (px)',
             'crop_type' => 'Crop Type',
@@ -48,16 +49,34 @@ return [
     ],
     'manager' => [
         'title' => 'Manage Gallery Images',
+        'upload_manual' => 'click for browse',
         'upload_zone' => 'Drag and drop images here or click to upload',
+        'no_images' => 'No uploaded files in this gallery.',
         'image' => [
             'edit' => 'Edit image details.',
+            'details' => 'Image details.',
             'title' => 'Image title',
             'description' => 'Image description',
             'confirm_delete' => 'Are you sure you want to delete this image?',
+            'data' => [
+                "title" => "Custom data (eg. url, target)",
+                "add" => "Add new",
+                "key" => "Key (eg: url)",
+                "value" => "Value (eg: https://...)",
+                "empty" => "No custom data set.",
+                "remove" => "Remove data"
+            ],
+            "not_found" => "Image file cant found",
+        ],
+        'thumbnail' => [
+            "name" => "Thumbnail",
+            "edit" => "Thumbnail editor",
+            "modify" => "Bélyegkép módosítása"
         ],
         'actions' => [
             'gallery_settings' => 'Gallery Settings',
             'save' => 'Save',
+            'delete' => 'Remove image',
             'cancel' => 'Cancel',
             'reorder_save' => 'Save Order',
         ],

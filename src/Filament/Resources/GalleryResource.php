@@ -160,16 +160,16 @@ class GalleryResource extends Resource
                         TextInput::make('settings.thumb.width')
                             ->label(__('filament-gallery::gallery.settings.thumbnails.width'))
                             ->numeric()
-                            ->default(300)
-                            ->required()
+                            ->nullable()
+                            ->placeholder('Auto')
                             ->disabled(fn ($get, ?Gallery $record) =>
                                 ($record && $record->images()->exists()) && ! $get('is_settings_unlocked')
                             ),
                         TextInput::make('settings.thumb.height')
                             ->label(__('filament-gallery::gallery.settings.thumbnails.height'))
                             ->numeric()
-                            ->default(300)
-                            ->required()
+                            ->nullable()
+                            ->placeholder('Auto')
                             ->disabled(fn ($get, ?Gallery $record) =>
                                 ($record && $record->images()->exists()) && ! $get('is_settings_unlocked')
                             ),

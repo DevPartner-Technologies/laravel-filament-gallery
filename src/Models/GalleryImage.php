@@ -1,9 +1,11 @@
 <?php
 namespace DevPartner\FilamentGallery\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class GalleryImage extends Model
 {
@@ -12,8 +14,16 @@ class GalleryImage extends Model
         'image_path',
         'title',
         'description',
+        'data',
         'sort_order',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'data' => AsArrayObject::class,
+        ];
+    }
 
     public function gallery(): BelongsTo
     {
@@ -84,5 +94,46 @@ class GalleryImage extends Model
         static::deleted(function ($image) {
             $image->gallery?->clearCache();
         });
+    }
+
+    public static function getCacheVersionQuery(): string
+    {
+        if (! config('filament-gallery.cache_versioning', true)) {
+            return '';
+        }
+
+        $cacheKey = config('filament-gallery.cache_key', 'filament_gallery_cache_version');
+
+        $version = Cache::rememberForever($cacheKey, fn () => rand(100000, 999999));
+
+        return "?v={$version}";
+    }
+
+    public static function bumpCacheVersion(): void
+    {
+        if (! config('filament-gallery.cache_versioning', true)) {
+            return;
+        }
+
+        $cacheKey = config('filament-gallery.cache_key', 'filament_gallery_cache_version');
+        Cache::put($cacheKey, rand(100000, 999999));
+    }
+
+    public function getVersionedUrl(string $type = 'thumb'): string
+    {
+        $disk = config('filament-gallery.disk', 'public');
+        $path = $this->getSuffixedPath($type);
+        $baseUrl = Storage::disk($disk)->url($path);
+
+        return $baseUrl . static::getCacheVersionQuery();
+    }
+
+    public function data(?string $key = null, mixed $default = null): mixed
+    {
+        if (is_null($key)) {
+            return $this->data;
+        }
+
+        return $this->data[$key] ?? $default;
     }
 }

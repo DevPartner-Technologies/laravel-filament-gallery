@@ -30,6 +30,7 @@ return [
         ],
         'thumbnails' => [
             'label' => 'Miniatűrök (Thumbnails) generálása',
+            'generate' => 'Miniatűr generálása',
             'width' => 'Bélyegkép szélesség (px)',
             'height' => 'Bélyegkép magasság (px)',
             'crop_type' => 'Méretre vágás módja',
@@ -53,14 +54,30 @@ return [
         'no_images' => 'Még nincsenek feltöltött képek ebben a galériában.',
         'image' => [
             'edit' => 'Kép adatainak szerkesztése.',
+            'details' => 'Kép adatai.',
             'title' => 'Kép címe',
             'description' => 'Kép leírása',
             'confirm_delete' => 'Biztosan törölni szeretnéd ezt a képet?',
+            'data' => [
+                "title" => "Egyedi adatok (pl. url, target)",
+                "add" => "Új mező",
+                "key" => "Kulcs (pl. url)",
+                "value" => "Érték (pl. https://...)",
+                "empty" => "Nincsenek egyedi tulajdonságok megadva.",
+                "remove" => "Eltávolítás"
+            ],
+            "not_found" => "A kép nem található",
+        ],
+        'thumbnail' => [
+            "name" => "Bélyegkép",
+            "edit" => "Bélyegkép szerkesztés",
+            "modify" => "Bélyegkép módosítása"
         ],
         'actions' => [
             'gallery_settings' => 'Galéria beállításai',
             'save' => 'Mentés',
             'cancel' => 'Mégse',
+            'delete' => 'Eltávolítás',
             'reorder_save' => 'Sorrend mentése',
         ],
         'notifications' => [

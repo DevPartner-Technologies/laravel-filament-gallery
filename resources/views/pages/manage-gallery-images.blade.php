@@ -102,7 +102,7 @@
                     class="group relative aspect-square w-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition duration-150"
                 >
                     <img
-                        src="{{ $image->thumb_url }}"
+                        src="{{ $image->getVersionedUrl('thumb') }}"
                         alt="{{ $image->title }}"
                         class="w-full h-full object-cover pointer-events-none group-hover:scale-105 transition-transform duration-200"
                     />
@@ -131,59 +131,8 @@
             </div>
         @endif
 
-        {{-- Image Detail Modal --}}
-        <x-filament::modal id="image-detail-modal" width="2xl">
-            <x-slot name="heading">
-                {{__('filament-gallery::gallery.manager.image.edit')}}
-            </x-slot>
+        @include('filament-gallery::components._image_edit')
 
-            @if($editingImageId)
-                @php
-                    $activeImage = \DevPartner\FilamentGallery\Models\GalleryImage::find($editingImageId);
-                @endphp
-
-                @if($activeImage)
-                    <div class="space-y-4">
-                        <div class="w-full max-h-72 bg-black/5 rounded-lg overflow-hidden flex items-center justify-center">
-                            <img src="{{ $activeImage->show_url }}" alt="Preview" class="max-h-72 object-contain" />
-                        </div>
-
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cím</label>
-                                <x-filament::input.wrapper>
-                                    <x-filament::input type="text" wire:model="editTitle" placeholder="{{__('filament-gallery::gallery.manager.image.title')}}" />
-                                </x-filament::input.wrapper>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Leírás</label>
-                                <x-filament::input.wrapper>
-                                    <textarea wire:model="editDescription" rows="3" class="w-full border-none bg-transparent text-sm focus:ring-0 focus:outline-none" placeholder="{{__('filament-gallery::gallery.manager.image.description')}}"></textarea>
-                                </x-filament::input.wrapper>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            @endif
-
-            <x-slot name="footer">
-                <div class="flex justify-between items-center w-full">
-                    <x-filament::button color="danger" icon="heroicon-m-trash" wire:click="deleteImage" wire:confirm="{{__('filament-gallery::gallery.manager.image.confirm_delete')}}">
-                        Törlés
-                    </x-filament::button>
-
-                    <div class="flex gap-2">
-                        <x-filament::button color="gray" x-on:click="$dispatch('close-modal', { id: 'image-detail-modal' })">
-                            Mégse
-                        </x-filament::button>
-                        <x-filament::button wire:click="updateImage">
-                            Mentés
-                        </x-filament::button>
-                    </div>
-                </div>
-            </x-slot>
-        </x-filament::modal>
 
     </div>
 
